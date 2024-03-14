@@ -1,0 +1,101 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: codeserver-app-deploy
+  namespace: codeserver
+  labels:
+    app: codeserver
+    name: codeserver-app-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: codeserver
+      name: codeserver-po
+  template:
+    metadata:
+      name: codeserver-app-po
+      labels:
+        app: codeserver
+        name: codeserver-po
+    spec:
+      volumes:
+      - name: codeserver-vol
+        persistentVolumeClaim:
+          claimName: codeserver-pvc
+      containers:
+      - name: codeserver-container
+        image: linuxserver/code-server:4.22.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: codeserver-port
+          containerPort: 8443
+        ### Enviromental Details - convert to ConfigMapRef / SecretRef Later
+        env:
+          - name: TZ
+            value: "Asia/Singapore"
+          - name: PASSWORD
+            value: "password"
+          - name: SUDO_PASSWORD
+            value: "password"
+          - name: DEFAULT_WORKSPACE
+            value: "/config/workspace"
+          - name: PROXY_DOMAIN
+            value: "code-159.89.211.155.nip.io"
+        volumeMounts:
+          - name: codeserver-vol
+            mountPath: /config/workspace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: codeserver-svc
+  namespace: codeserver
+  labels:
+    app: codeserver
+    name: codeserver-svc
+spec:
+  type: ClusterIP
+  # type: NodePort
+  selector:
+    app: codeserver
+    name: codeserver-po
+  ports:
+    - port: 8443
+      targetPort: codeserver-port
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: codeserver-pvc
+  namespace: codeserver
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: do-block-storage
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: codeserver-ing
+  namespace: codeserver
+  labels:
+    app: codeserver
+    name: codeserver-ing
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: code-159.89.211.155.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: codeserver-svc
+                port:
+                  number: 8443

@@ -1,0 +1,61 @@
+colima start --kubernetes
+
+alias k='kubectl'
+alias kc='k config view --minify | grep name'
+alias kdp='kubectl describe pod'
+alias krh='kubectl run --help | more'
+alias ugh='kubectl get --help | more'
+alias c='clear'
+alias kd='kubectl describe pod'
+alias ke='kubectl explain'
+alias kf='kubectl create -f'
+alias kg='kubectl get pods --show-labels'
+alias kr='kubectl replace -f'
+alias kh='kubectl --help | more'
+alias krh='kubectl run --help | more'
+alias ks='kubectl get namespaces'
+alias l='ls -lrt'
+alias ll='vi ls -rt | tail -1'
+alias kga='k get pod --all-namespaces'
+alias kgaa='kubectl get all --show-labels'
+
+kubectl cluster-info
+kubectl describe namespace default 
+kubectl get pod -nkube-system
+k get po -nkube-system
+
+
+# Creating a namespace
+k get ns
+k create ns myns  
+
+https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.29/#pod-v1-core
+
+k create -f dov-bear.yaml ## impreative 
+k get po -nmyns 
+k logs -nmyns po/dov-po
+k delete -nmyns po/dov-po
+k delete -f dov-bear.yaml
+k delete -f dov-bear.yaml --force --grace-period=0
+k apply -f dov-bear.yaml ## if exists, compare if same (Certain config)
+
+## port-forward to cluster
+k port-forward -nmyns po/dov-po 8080:5050
+k exec -ti -nmyns po/dov-po -- <Command to Run>
+
+k apply -f dov-deploy.yaml 
+k get deploy,po -nmyns
+k get all -nmyns
+
+## Deleting deployments
+k delete -f dov-deploy.yaml
+
+## to test, port forward to deployment directly instead of the pods
+k port-forward -nmyns deploy/dov-deploy 8080:5050
+k scale deploy/dov-deploy -nmyns --replicas=1 
+
+<Service_name>.<namespace>.svc.cluster.local
+dot-svc.myns.svc.cluster.local
+
+## can use name service instead of 5500
+k port-forward -nmyns svc/dov-svc 8080:5500
