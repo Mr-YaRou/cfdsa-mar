@@ -42,10 +42,17 @@ spec:
           - name: DEFAULT_WORKSPACE
             value: "/config/workspace"
           - name: PROXY_DOMAIN
-            value: "code-159.89.211.155.nip.io"
+            value: "code-146.190.195.145.nip.io"
         volumeMounts:
           - name: codeserver-vol
             mountPath: /config/workspace
+        # resources:
+        #   requests: #lower bound same = Guarenteed 
+        #     cpu: 32m
+        #     memory: 32Mi
+        #   limits: # upperbound
+        #     cpu: 64m
+        #     memory: 64Mi
 ---
 apiVersion: v1
 kind: Service
@@ -89,7 +96,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: code-159.89.211.155.nip.io
+    - host: code-146.190.195.145.nip.io
       http:
         paths:
           - path: /
@@ -99,3 +106,4 @@ spec:
                 name: codeserver-svc
                 port:
                   number: 8443
+---

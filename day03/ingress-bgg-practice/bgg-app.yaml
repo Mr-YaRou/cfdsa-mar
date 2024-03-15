@@ -32,6 +32,13 @@ spec:
         ports:
         - name: bggapp-port
           containerPort: 3000
+        resources:
+          requests: #lower bound same = Guarenteed 
+            cpu: 16m
+            memory: 48Mi
+          limits: # upperbound
+            cpu: 32m
+            memory: 128Mi
 ---
 apiVersion: v1
 kind: Service
@@ -63,7 +70,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: bgg-159.89.211.155.nip.io
+    - host: bgg-146.190.195.145.nip.io
       http: 
         paths:
           - path: /
@@ -73,3 +80,29 @@ spec:
                 name: bggapp-svc
                 port:
                   number: 80
+---
+apiVersion: autoscaling/v2 
+kind: HorizontalPodAutoscaler 
+metadata: 
+  name: bgg-hpa 
+  namespace: bggns 
+spec: 
+  minReplicas: 3
+  maxReplicas: 24
+  scaleTargetRef:
+    apiVersion: apps/v1 
+    kind: Deployment 
+    name: bggapp-deploy
+  metrics:
+  - type: Resource 
+    resource:
+      name: cpu 
+      target:
+        type: Utilization 
+        averageUtilization: 80
+  - type: Resource 
+    resource:
+      name: memory 
+      target:
+        type: Utilization 
+        averageUtilization: 80
